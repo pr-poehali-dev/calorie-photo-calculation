@@ -1,0 +1,24 @@
+{
+  "name": "NutriScan — Анализ питания",
+  "short_name": "NutriScan",
+  "description": "Умный подсчёт калорий по фото с ИИ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn.poehali.dev/projects/c8379170-7687-4c17-9e48-b3d00f75517f/files/0160434c-2e6b-4197-9205-b9bd4c05f14f.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn.poehali.dev/projects/c8379170-7687-4c17-9e48-b3d00f75517f/files/0160434c-2e6b-4197-9205-b9bd4c05f14f.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
