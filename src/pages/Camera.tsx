@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { saveMeal, type FoodResult } from "@/lib/api";
+import { useTrial } from "@/hooks/useTrial";
+import Paywall from "@/components/Paywall";
 
 const ANALYZE_URL = "https://functions.poehali.dev/08f164e2-0672-409b-af45-791051261249";
 
@@ -21,6 +23,7 @@ function fileToBase64(file: File): Promise<{ base64: string; mimeType: string }>
 }
 
 export default function Camera({ onNavigate }: { onNavigate: (page: string) => void }) {
+  const { status, daysLeft, grantAccess } = useTrial();
   const [stage, setStage] = useState<Stage>("idle");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [result, setResult] = useState<FoodResult | null>(null);
@@ -80,6 +83,10 @@ export default function Camera({ onNavigate }: { onNavigate: (page: string) => v
     setErrorMsg("");
     if (fileRef.current) fileRef.current.value = "";
   };
+
+  if (status === "expired") {
+    return <Paywall onGrantAccess={grantAccess} daysLeft={0} />;
+  }
 
   if (stage === "saved") {
     return (
@@ -301,6 +308,19 @@ export default function Camera({ onNavigate }: { onNavigate: (page: string) => v
           <div key={i} className={`absolute w-8 h-8 border-green-400/60 ${cls}`} />
         ))}
       </div>
+
+      {/* Trial banner */}
+      {status === "trial" && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-green-400/20 bg-green-400/5">
+          <Icon name="Clock" size={16} className="text-green-400 shrink-0" />
+          <p className="text-sm text-muted-foreground">
+            Бесплатный период: осталось{" "}
+            <span className="text-green-400 font-semibold">
+              {daysLeft} {daysLeft === 1 ? "день" : "дня"}
+            </span>
+          </p>
+        </div>
+      )}
 
       {/* Buttons */}
       <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
