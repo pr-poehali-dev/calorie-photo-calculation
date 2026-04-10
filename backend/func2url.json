@@ -1,3 +1,5 @@
 {
+  "save-meal": "https://functions.poehali.dev/45a24542-cc23-4dd4-b3e0-a3e38c22700d",
+  "get-meals": "https://functions.poehali.dev/a19f9128-3bf9-44e8-84e7-d05ed43b52a8",
   "analyze-food": "https://functions.poehali.dev/08f164e2-0672-409b-af45-791051261249"
 }

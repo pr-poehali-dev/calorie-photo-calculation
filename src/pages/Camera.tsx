@@ -1,18 +1,10 @@
 import { useState, useRef } from "react";
 import Icon from "@/components/ui/icon";
+import { saveMeal, type FoodResult } from "@/lib/api";
 
 const ANALYZE_URL = "https://functions.poehali.dev/08f164e2-0672-409b-af45-791051261249";
 
-type Stage = "idle" | "scanning" | "result" | "error";
-
-interface FoodResult {
-  name: string;
-  confidence: number;
-  calories: number;
-  macros: { protein: number; fat: number; carbs: number };
-  ingredients: { name: string; weight: number; calories: number }[];
-  portion: string;
-}
+type Stage = "idle" | "scanning" | "result" | "saving" | "saved" | "error";
 
 function fileToBase64(file: File): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
@@ -33,7 +25,21 @@ export default function Camera({ onNavigate }: { onNavigate: (page: string) => v
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [result, setResult] = useState<FoodResult | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [saveError, setSaveError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleSave = async () => {
+    if (!result) return;
+    setStage("saving");
+    setSaveError("");
+    try {
+      await saveMeal(result, previewUrl || undefined);
+      setStage("saved");
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Ошибка сохранения");
+      setStage("result");
+    }
+  };
 
   const analyzeFile = async (file: File) => {
     const url = URL.createObjectURL(file);
@@ -74,6 +80,39 @@ export default function Camera({ onNavigate }: { onNavigate: (page: string) => v
     setErrorMsg("");
     if (fileRef.current) fileRef.current.value = "";
   };
+
+  if (stage === "saved") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6 animate-fade-up">
+        <div className="w-24 h-24 rounded-3xl flex items-center justify-center glow-green"
+          style={{ background: "linear-gradient(135deg, #4ade80, #22c55e)" }}>
+          <Icon name="Check" size={40} className="text-green-900" />
+        </div>
+        <div className="text-center">
+          <p className="font-display font-bold text-2xl text-foreground mb-2">Сохранено!</p>
+          <p className="text-muted-foreground text-sm">{result?.name} добавлено в дневник</p>
+          {result && (
+            <p className="font-display font-bold text-3xl gradient-text mt-3">{result.calories} ккал</p>
+          )}
+        </div>
+        <div className="flex gap-3 w-full px-4">
+          <button
+            onClick={() => onNavigate("history")}
+            className="flex-1 py-4 rounded-2xl font-display font-semibold text-base"
+            style={{ background: "linear-gradient(135deg, #4ade80, #22c55e)", color: "#0a0e1a" }}
+          >
+            Смотреть историю
+          </button>
+          <button
+            onClick={handleReset}
+            className="flex-1 py-4 rounded-2xl font-display font-semibold text-base card-glass text-foreground"
+          >
+            Ещё фото
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (stage === "error") {
     return (
@@ -168,14 +207,20 @@ export default function Camera({ onNavigate }: { onNavigate: (page: string) => v
           </div>
         )}
 
+        {/* Save error */}
+        {saveError && (
+          <p className="text-red-400 text-sm text-center px-4">{saveError}</p>
+        )}
+
         {/* Actions */}
         <div className="flex gap-3">
           <button
-            className="flex-1 py-4 rounded-2xl font-display font-semibold text-base"
+            className="flex-1 py-4 rounded-2xl font-display font-semibold text-base disabled:opacity-60"
             style={{ background: "linear-gradient(135deg, #4ade80, #22c55e)", color: "#0a0e1a" }}
-            onClick={() => onNavigate("history")}
+            onClick={handleSave}
+            disabled={stage === "saving"}
           >
-            Добавить в дневник
+            {stage === "saving" ? "Сохраняю..." : "Добавить в дневник"}
           </button>
           <button onClick={handleReset} className="w-14 h-14 rounded-2xl card-glass flex items-center justify-center shrink-0">
             <Icon name="RotateCcw" size={20} className="text-muted-foreground" />
